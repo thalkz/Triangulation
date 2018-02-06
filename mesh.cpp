@@ -11,14 +11,6 @@ Mesh::Mesh()
     colors = Colors();
 
     build_mesh();
-
-    //add_vertex(0.25, -0.25, 0.1);
-    //add_vertex(-0.4, 0.25, 0.05);
-    //add_vertex(-0.1, 0.1, -0.1);
-    //add_vertex(0.0, -0.2, -0.05);
-
-    //flip_algorithm();
-
     log_triangles();
 }
 
@@ -69,6 +61,8 @@ void Mesh::add_random_vertex()
     double z = (rand() % 1000) / 10000.0 - 0.05;
 
     add_vertex(x, y, z);
+
+    log_triangles();
 }
 
 int Mesh::get_target_triangle(double x, double y, double z)
@@ -116,7 +110,7 @@ void Mesh::add_vertex_inside(int target, double x, double y, double z)
                 new_vertex,
                 old.v[2],
                 t_index[1],
-                old.v[1],
+                old.t[1],
                 t_index[0]);
 
     vertices.push_back(Vertex(x, y, z, target));
@@ -296,8 +290,8 @@ int Mesh::is_delaunay(int t_index)
     Vertex center = get_center(va, vb, vc);
     double radius = get_2d_distance(va, center);
 
-    cout << "center (" << center.x << ", " << center.y << ", " << center.z << ")" << endl;
-    cout << "radius " << radius << endl;
+    // cout << "center (" << center.x << ", " << center.y << ", " << center.z << ")" << endl;
+    // cout << "radius " << radius << endl;
 
     int opposite_va = get_opposite_vertex(t_index, 0);
     int opposite_vb = get_opposite_vertex(t_index, 1);
@@ -325,37 +319,99 @@ int Mesh::is_delaunay(int t_index)
     }
 }
 
-void Mesh::flip_algorithm()
+bool Mesh::should_flip(int a_index, int b_index)
 {
-    bool found = true;
+    return (a_index == is_delaunay(b_index));
+}
 
-    while(found)
+void log_queue(vector<IndexPair> &to_flip)
+{
+    cout << endl << "Initial Queue contains : " << endl;
+
+    for (int i = 0; i < (int) to_flip.size(); i++)
     {
-        found = false;
-        for (int i = 0; i < (int) triangles.size(); i++)
+        cout << to_flip.at(i).a << ", " << to_flip.at(i).b << endl;
+    }
+    cout << endl;
+}
+
+void Mesh::lawson_algorithm()
+{
+    vector<IndexPair> to_flip;
+
+    // Find every triangles pair to flip and put them in 'to_flip'
+
+    for (int t_index = 0; t_index < (int) triangles.size(); t_index++)
+    {
+        if (triangles[t_index].is_box)
         {
-            if (triangles[i].is_box)
-            {
-                continue;
-            }
+            continue;
+        }
 
-            cout << endl << "Is Triangle " << i << " Delaunay ?" << endl;
-            int other_triangle = is_delaunay(i);
+        cout << endl << "Is Triangle " << t_index << " Delaunay ?" << endl;
+        int other_index = is_delaunay(t_index);
 
-            if (other_triangle != -1)
+        if (other_index == -1)
+        {
+            cout << "Yes" << endl;
+        }
+        else
+        {
+            if (t_index < other_index) // This removes duplicate pairs
             {
-                cout << "Yes, Flip " << i << " and " << other_triangle << endl;
-                flip(i, other_triangle);
-                found = true;
-                break;
+                cout << "No, add Triangles (" << t_index << ", " << other_index << ") to queue." << endl;
+                to_flip.push_back({t_index, other_index});
             }
             else
             {
-                cout << "Not Delaunay !" << endl;
+                cout << "No, but indices aren't in ascending order." << endl;
             }
         }
     }
-    cout << endl;
+
+    log_queue(to_flip);
+
+    int flip_count = 0;
+
+    while(!to_flip.empty())
+    {
+        IndexPair pair = to_flip.back();
+        to_flip.pop_back();
+        cout << "Pop : " << pair.a << ", " << pair.b << endl;
+
+        if (should_flip(pair.a, pair.b))
+        {
+            cout << "=> Flip" << endl;
+            flip(pair.a, pair.b);
+            flip_count++;
+
+            // Ajouter les 2 arrêtes autour de a
+            for (int k = 0; k < 3; k++)
+            {
+                if (triangles[pair.a].t[k] != pair.b)
+                {
+                    cout << "Push : " << triangles[pair.a].t[k] << ", " << pair.a << endl;
+                    to_flip.push_back({triangles[pair.a].t[k], pair.a});
+                }
+            }
+
+            // Ajouter les 2 arrêtes autour de b
+            for (int k = 0; k < 3; k++)
+            {
+                if (triangles[pair.b].t[k] != pair.a)
+                {
+                    cout << "Push : " << triangles[pair.b].t[k] << ", " << pair.b << endl;
+                    to_flip.push_back({triangles[pair.b].t[k], pair.b});
+                }
+            }
+        }
+        else
+        {
+            cout << "=> Don't Flip" << endl;
+        }
+    }
+
+    cout << endl << "Finished with " << flip_count << " flips" << endl;
 }
 
 void Mesh::draw()
@@ -422,5 +478,22 @@ void Mesh::log_triangles()
         std::cout << "Triangle " << i << " (" << triangles[i].t[0] << ", "
                                               << triangles[i].t[1] << ", "
                                               << triangles[i].t[2] << ")" << endl;
+        for (int j = 0; j < 3; j++)
+        {
+            Triangle other = triangles[triangles[i].t[j]];
+            cout << "=> Ajdacent Triangle " << triangles[i].t[j] << "... ";
+            if (other.t[0] == i || other.t[1] == i || other.t[2] == i)
+            {
+                cout << "OK !" << endl;
+            }
+            else
+            {
+                cout << "Error !" << endl;
+            }
+        }
     }
+
+
+    cout << endl;
+
 }

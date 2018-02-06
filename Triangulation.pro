@@ -13,18 +13,18 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    gldisplay.cpp \
-    mesh.cpp \
-    triangle.cpp \
-    vertex.cpp \
-    colors.cpp
+		mainwindow.cpp \
+	gldisplay.cpp \
+	mesh.cpp \
+	triangle.cpp \
+	vertex.cpp \
+	colors.cpp
 
 HEADERS  += mainwindow.h \
-    gldisplay.h \
-    mesh.h \
-    triangle.h \
-    vertex.h \
-    colors.h
+	gldisplay.h \
+	mesh.h \
+	triangle.h \
+	vertex.h \
+	colors.h
 
 FORMS    += mainwindow.ui

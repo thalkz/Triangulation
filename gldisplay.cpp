@@ -73,7 +73,8 @@ void GLDisplay::onAddVertexButton()
 
 void GLDisplay::onOptimizeButton()
 {
-    mesh.flip_algorithm();
+    //mesh.flip_algorithm();
+    mesh.lawson_algorithm();
     updateGL();
 }
 

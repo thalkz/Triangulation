@@ -12,6 +12,10 @@ struct point {
     double x, y, z;
 };
 
+struct IndexPair {
+    int a, b;
+};
+
 class Mesh
 {
 public:
@@ -30,6 +34,8 @@ public:
     int is_delaunay(int t_index);
     int get_opposite_vertex(int t_index, int v_index);
     void flip_algorithm();
+    void lawson_algorithm();
+    bool should_flip(int a_index, int b_index);
     void log_triangles();
     void draw();
 };
