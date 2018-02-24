@@ -40,27 +40,228 @@ void Mesh::build_mesh()
     triangles[5].is_box = true;
 }
 
-void Mesh::add_vertex(double x, double y, double z)
+void Mesh::log_triangles()
 {
-    int target = get_target_triangle(x, y, z);
+    cout << "Log Triangles : " << endl;
+    for (int i = 0; i < (int) triangles.size(); i++)
+    {
+        std::cout << "Triangle " << i << " (" << triangles[i].t[0] << ", "
+                                              << triangles[i].t[1] << ", "
+                                              << triangles[i].t[2] << ")" << endl;
+        for (int j = 0; j < 3; j++)
+        {
+            Triangle other = triangles[triangles[i].t[j]];
+            cout << "=> Ajdacent Triangle " << triangles[i].t[j] << "... ";
+            if (other.t[0] == i || other.t[1] == i || other.t[2] == i)
+            {
+                cout << "OK !" << endl;
+            }
+            else
+            {
+                cout << "Error !" << endl;
+            }
+        }
+    }
 
-    if (target != -1)
-    {
-        add_vertex_inside(target, x, y, z);
-    }
-    else
-    {
-        std::cout << "Cannot add Vertex at : " << x << ", " << y << ", " << z << endl;
-    }
+    cout << endl;
 }
 
 void Mesh::add_random_vertex()
 {
     double x = (rand() % 1000) / 1000.0 - 0.5;
     double y = (rand() % 1000) / 1000.0 - 0.5;
-    double z = (rand() % 1000) / 10000.0 - 0.05;
+    //double z = (rand() % 1000) / 10000.0 - 0.05;
+    double z = 0;
 
-    add_vertex(x, y, z);
+    int target = get_target_triangle(x, y, z);
+
+    if (target != -1)
+    {
+        Triangle old = triangles[target];
+
+        int new_vertex = vertices.size();
+
+        int t_index [3];
+        t_index[0] = target;
+        t_index[1] = triangles.size();
+        t_index[2] = triangles.size() + 1;
+
+        Triangle t0 = Triangle(
+                    old.v[0],
+                    old.v[1],
+                    new_vertex,
+                    t_index[1],
+                    t_index[2],
+                    old.t[2]);
+
+        Triangle t1 = Triangle(
+                    new_vertex,
+                    old.v[1],
+                    old.v[2],
+                    old.t[0],
+                    t_index[2],
+                    t_index[0]);
+
+        Triangle t2 = Triangle(
+                    old.v[0],
+                    new_vertex,
+                    old.v[2],
+                    t_index[1],
+                    old.t[1],
+                    t_index[0]);
+
+        vertices.push_back(Vertex(x, y, z, target));
+
+        triangles[target] = t0;
+        triangles.push_back(t1);
+        triangles.push_back(t2);
+
+        // Raccorder le triangle en face de v0
+        for (int k = 0; k < 3; k++)
+        {
+            if (triangles[old.t[0]].t[k] == target)
+            {
+                triangles[old.t[0]].t[k] = t_index[1];
+            }
+        }
+
+        // Raccorder le triangle en face de v1
+        for (int k = 0; k < 3; k++)
+        {
+            if (triangles[old.t[1]].t[k] == target)
+            {
+                triangles[old.t[1]].t[k] = t_index[2];
+            }
+        }
+
+        // Raccorder le triangle en face de v2
+        for (int k = 0; k < 3; k++)
+        {
+            if (triangles[old.t[2]].t[k] == target)
+            {
+                triangles[old.t[2]].t[k] = t_index[0];
+            }
+        }
+    }
+    else
+    {
+        std::cout << "Cannot add Vertex at : " << x << ", " << y << ", " << z << endl;
+    }
+
+    log_triangles();
+}
+
+void Mesh::log_queue(vector<IndexPair> &to_flip)
+{
+    cout << endl << "Initial Queue contains : " << endl;
+
+    for (int i = 0; i < (int) to_flip.size(); i++)
+    {
+        cout << to_flip.at(i).a << ", " << to_flip.at(i).b << endl;
+    }
+    cout << endl;
+}
+
+void Mesh::add_delaunay_vertex()
+{
+    double x = (rand() % 1000) / 1000.0 - 0.5;
+    double y = (rand() % 1000) / 1000.0 - 0.5;
+    //double z = (rand() % 1000) / 10000.0 - 0.05;
+    double z = 0;
+
+    int target = get_target_triangle(x, y, z);
+
+    if (target != -1)
+    {
+        Triangle old = triangles[target];
+
+        int new_vertex = vertices.size();
+
+        int t_index [3];
+        t_index[0] = target;
+        t_index[1] = triangles.size();
+        t_index[2] = triangles.size() + 1;
+
+        Triangle t0 = Triangle(
+                    old.v[0],
+                    old.v[1],
+                    new_vertex,
+                    t_index[1],
+                    t_index[2],
+                    old.t[2]);
+
+        Triangle t1 = Triangle(
+                    new_vertex,
+                    old.v[1],
+                    old.v[2],
+                    old.t[0],
+                    t_index[2],
+                    t_index[0]);
+
+        Triangle t2 = Triangle(
+                    old.v[0],
+                    new_vertex,
+                    old.v[2],
+                    t_index[1],
+                    old.t[1],
+                    t_index[0]);
+
+        vertices.push_back(Vertex(x, y, z, target));
+
+        triangles[target] = t0;
+        triangles.push_back(t1);
+        triangles.push_back(t2);
+
+        // Raccorder le triangle en face de v0
+        for (int k = 0; k < 3; k++)
+        {
+            if (triangles[old.t[0]].t[k] == target)
+            {
+                triangles[old.t[0]].t[k] = t_index[1];
+            }
+        }
+
+        // Raccorder le triangle en face de v1
+        for (int k = 0; k < 3; k++)
+        {
+            if (triangles[old.t[1]].t[k] == target)
+            {
+                triangles[old.t[1]].t[k] = t_index[2];
+            }
+        }
+
+        // Raccorder le triangle en face de v2
+        for (int k = 0; k < 3; k++)
+        {
+            if (triangles[old.t[2]].t[k] == target)
+            {
+                triangles[old.t[2]].t[k] = t_index[0];
+            }
+        }
+
+        // Ajouter les 3 arrêtes et faire l'algo de flip
+        vector<IndexPair> to_flip;
+
+        if (!triangles[old.t[2]].is_box) {
+            to_flip.push_back({t_index[0], old.t[2]});
+        }
+
+        if (!triangles[old.t[0]].is_box) {
+            to_flip.push_back({t_index[1], old.t[0]});
+        }
+
+        if (!triangles[old.t[1]].is_box) {
+            to_flip.push_back({t_index[2], old.t[1]});
+        }
+
+        log_queue(to_flip);
+        perform_flips(to_flip);
+    }
+    else
+    {
+        std::cout << "Cannot add Vertex at : " << x << ", " << y << ", " << z << endl;
+    }
+
 
     log_triangles();
 }
@@ -76,75 +277,6 @@ int Mesh::get_target_triangle(double x, double y, double z)
     }
 
     return -1;
-}
-
-void Mesh::add_vertex_inside(int target, double x, double y, double z)
-{
-    Triangle old = triangles[target];
-
-    int new_vertex = vertices.size();
-
-    int t_index [3];
-    t_index[0] = target;
-    t_index[1] = triangles.size();
-    t_index[2] = triangles.size() + 1;
-
-    Triangle t0 = Triangle(
-                old.v[0],
-                old.v[1],
-                new_vertex,
-                t_index[1],
-                t_index[2],
-                old.t[2]);
-
-    Triangle t1 = Triangle(
-                new_vertex,
-                old.v[1],
-                old.v[2],
-                old.t[0],
-                t_index[2],
-                t_index[0]);
-
-    Triangle t2 = Triangle(
-                old.v[0],
-                new_vertex,
-                old.v[2],
-                t_index[1],
-                old.t[1],
-                t_index[0]);
-
-    vertices.push_back(Vertex(x, y, z, target));
-
-    triangles[target] = t0;
-    triangles.push_back(t1);
-    triangles.push_back(t2);
-
-    // Raccorder le triangle en face de v0
-    for (int k = 0; k < 3; k++)
-    {
-        if (triangles[old.t[0]].t[k] == target)
-        {
-            triangles[old.t[0]].t[k] = t_index[1];
-        }
-    }
-
-    // Raccorder le triangle en face de v1
-    for (int k = 0; k < 3; k++)
-    {
-        if (triangles[old.t[1]].t[k] == target)
-        {
-            triangles[old.t[1]].t[k] = t_index[2];
-        }
-    }
-
-    // Raccorder le triangle en face de v2
-    for (int k = 0; k < 3; k++)
-    {
-        if (triangles[old.t[2]].t[k] == target)
-        {
-            triangles[old.t[2]].t[k] = t_index[0];
-        }
-    }
 }
 
 void Mesh::flip(int a_index, int b_index)
@@ -297,10 +429,6 @@ int Mesh::is_delaunay(int t_index)
     int opposite_vb = get_opposite_vertex(t_index, 1);
     int opposite_vc = get_opposite_vertex(t_index, 2);
 
-//    cout << "opposite_va " << opposite_va << endl;
-//    cout << "opposite_vb " << opposite_vb << endl;
-//    cout << "opposite_vc " << opposite_vc << endl;
-
     if (is_inside_circle(center, radius, vertices[opposite_va]) && opposite_va != 4)
     {
         return triangle.t[0];
@@ -319,20 +447,97 @@ int Mesh::is_delaunay(int t_index)
     }
 }
 
-bool Mesh::should_flip(int a_index, int b_index)
+bool is_above_3d_plane(Vertex &va, Vertex &vb, Vertex &vc, Vertex &opposite_v)
 {
-    return (a_index == is_delaunay(b_index));
+    double ab[3];
+    ab[0] = vb.x - va.x;
+    ab[1] = vb.y - va.y;
+    ab[2] = vb.z - va.z;
+
+    // normalize
+    double kab = 1 / sqrt(pow(ab[0],2) + pow(ab[1],2) + pow(ab[2],2) );
+    ab[0] = kab * ab[0];
+    ab[1] = kab * ab[1];
+    ab[2] = kab * ab[2];
+
+    double ac[3];
+    ac[0] = vc.x - va.x;
+    ac[1] = vc.y - va.y;
+    ac[2] = vc.z - va.z;
+
+    // normalize
+    double kac = 1 / sqrt(pow(ac[0],2) + pow(ac[1],2) + pow(ac[2],2) );
+    ac[0] = kac * ac[0];
+    ac[1] = kac * ac[1];
+    ac[2] = kac * ac[2];
+
+    double normal[3];
+    normal[0] = ab[1] * ac[2] - ab[2] * ac[1];
+    normal[1] = ab[2] * ac[0] - ab[0] * ac[2];
+    normal[2] = ab[0] * ac[1] - ab[1] * ac[0];
+
+    //cout << "Normal : " << normal[0] << ", " << normal[1] << ", " << normal[2] << endl;
+
+    double opp[3];
+    opp[0] = opposite_v.x - va.x;
+    opp[1] = opposite_v.y - va.y;
+    opp[2] = opposite_v.z - va.z;
+
+    return (normal[0] * opp[0] + normal[1] * opp[1] + normal[2] * opp[2] < 0);
 }
 
-void log_queue(vector<IndexPair> &to_flip)
+int Mesh::is_delaunay_predicat(int t_index)
 {
-    cout << endl << "Initial Queue contains : " << endl;
+    Triangle triangle = triangles[t_index];
 
-    for (int i = 0; i < (int) to_flip.size(); i++)
+    Vertex va = vertices[triangle.v[0]];
+    Vertex vb = vertices[triangle.v[1]];
+    Vertex vc = vertices[triangle.v[2]];
+
+    // Projeter sur la parabole
+    va.z = va.x * va.x + va.y * va.y;
+    vb.z = vb.x * vb.x + vb.y * vb.y;
+    vc.z = vc.x * vc.x + vc.y * vc.y;
+
+    int opposite_va = get_opposite_vertex(t_index, 0);
+    int opposite_vb = get_opposite_vertex(t_index, 1);
+    int opposite_vc = get_opposite_vertex(t_index, 2);
+
+    // Projeter sur la parabole
+    Vertex opp_va = vertices[opposite_va];
+    opp_va.z = opp_va.x * opp_va.x + opp_va.y * opp_va.y;
+
+    Vertex opp_vb = vertices[opposite_vb];
+    opp_vb.z = opp_vb.x * opp_vb.x + opp_vb.y * opp_vb.y;
+
+    Vertex opp_vc = vertices[opposite_vc];
+    opp_vc.z = opp_vc.x * opp_vc.x + opp_vc.y * opp_vc.y;
+
+    if (is_above_3d_plane(va, vb, vc, opp_va) && opposite_va != 4)
     {
-        cout << to_flip.at(i).a << ", " << to_flip.at(i).b << endl;
+        return triangle.t[0];
     }
-    cout << endl;
+    else if (is_above_3d_plane(va, vb, vc, opp_vb) && opposite_vb != 4)
+    {
+        return triangle.t[1];
+    }
+    else if (is_above_3d_plane(va, vb, vc, opp_vc) && opposite_vc != 4)
+    {
+        return triangle.t[2];
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+bool Mesh::should_flip(int a_index, int b_index)
+{
+    cout << "Circle Method : " << is_delaunay(b_index) << endl;
+    cout << "Predicat Method : " << is_delaunay_predicat(b_index) << endl;
+
+    //return (a_index == is_delaunay(b_index));
+    return (a_index == is_delaunay_predicat(b_index));
 }
 
 void Mesh::lawson_algorithm()
@@ -368,9 +573,13 @@ void Mesh::lawson_algorithm()
             }
         }
     }
-
+    //to_flip = fetch_pairs_to_flip();
     log_queue(to_flip);
+    perform_flips(to_flip);
+}
 
+void Mesh::perform_flips(vector<IndexPair> &to_flip)
+{
     int flip_count = 0;
 
     while(!to_flip.empty())
@@ -471,29 +680,39 @@ void Mesh::draw()
     glEnd();
 }
 
-void Mesh::log_triangles()
+void Mesh::draw_voronoi()
 {
-    for (int i = 0; i < (int) triangles.size(); i++)
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glBegin(GL_LINES);
+    for (int i = 0; i < (int)triangles.size(); i++)
     {
-        std::cout << "Triangle " << i << " (" << triangles[i].t[0] << ", "
-                                              << triangles[i].t[1] << ", "
-                                              << triangles[i].t[2] << ")" << endl;
+        point black = {1.0, 1.0, 1.0};
+        glColor3dv(&black.x);
+
+        Triangle* triangle = &(triangles[i]);
+
         for (int j = 0; j < 3; j++)
         {
-            Triangle other = triangles[triangles[i].t[j]];
-            cout << "=> Ajdacent Triangle " << triangles[i].t[j] << "... ";
-            if (other.t[0] == i || other.t[1] == i || other.t[2] == i)
+            Vertex centre = get_center(vertices[triangle->v[0]], vertices[triangle->v[1]], vertices[triangle->v[2]]);
+
+            Triangle* adj_triangle = &triangles[triangle->t[j]];
+            Vertex adj_centre = get_center(vertices[adj_triangle->v[0]], vertices[adj_triangle->v[1]], vertices[adj_triangle->v[2]]);
+
+            // specify vertex
+            if (!triangle->is_box)
             {
-                cout << "OK !" << endl;
-            }
-            else
-            {
-                cout << "Error !" << endl;
+                glVertex3d(centre.x, centre.y, 0.001);
+                if (adj_triangle->is_box)
+                {
+                    glVertex3d(adj_centre.x * 1000, adj_centre.y * 1000, 0.001);
+                }
+                else
+                {
+                    glVertex3d(adj_centre.x, adj_centre.y, 0.001);
+                }
             }
         }
+
     }
-
-
-    cout << endl;
-
+    glEnd();
 }

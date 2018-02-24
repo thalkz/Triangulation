@@ -9,6 +9,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->addVertexButton, SIGNAL(released()), ui->canvasWidget, SLOT(onAddVertexButton()));
     connect(ui->optimizeButton, SIGNAL(released()), ui->canvasWidget, SLOT(onOptimizeButton()));
     connect(ui->resetButton, SIGNAL(released()), ui->canvasWidget, SLOT(onResetButton()));
+    connect(ui->delaunayButton, SIGNAL(released()), ui->canvasWidget, SLOT(onDelaunayButton()));
+
+    connect(ui->voronoiButton, SIGNAL(released()), ui->canvasWidget, SLOT(onShowVoronoi()));
+    connect(ui->hideVoronoiButton, SIGNAL(released()), ui->canvasWidget, SLOT(onHideVoronoi()));
 }
 
 MainWindow::~MainWindow()

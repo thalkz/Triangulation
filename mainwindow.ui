@@ -23,14 +23,39 @@
       <item>
        <widget class="QPushButton" name="addVertexButton">
         <property name="text">
-         <string>Add Vertex</string>
+         <string>Ajouter un point Naif</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="optimizeButton">
         <property name="text">
-         <string>Optimize</string>
+         <string>Algorithme de Lawson</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="delaunayButton">
+        <property name="text">
+         <string>Ajouter un point de Delaunay</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QPushButton" name="voronoiButton">
+        <property name="text">
+         <string>Draw Voronoi</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="hideVoronoiButton">
+        <property name="text">
+         <string>Hide Voronoi</string>
         </property>
        </widget>
       </item>

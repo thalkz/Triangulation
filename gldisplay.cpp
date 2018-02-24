@@ -31,6 +31,11 @@ void GLDisplay::paintGL()
     glRotatef(_angle, 0.0f, 0.0f, 1.0f);
 
     mesh.draw();
+
+    if (voronoi)
+    {
+        mesh.draw_voronoi();
+    }
 }
 
 void GLDisplay::resizeGL(int w, int h)
@@ -81,5 +86,23 @@ void GLDisplay::onOptimizeButton()
 void GLDisplay::onResetButton()
 {
     mesh.build_mesh();
+    updateGL();
+}
+
+void GLDisplay::onDelaunayButton()
+{
+    mesh.add_delaunay_vertex();
+    updateGL();
+}
+
+void GLDisplay::onShowVoronoi()
+{
+    voronoi = true;
+    updateGL();
+}
+
+void GLDisplay::onHideVoronoi()
+{
+    voronoi = false;
     updateGL();
 }

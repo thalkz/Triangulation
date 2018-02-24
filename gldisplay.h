@@ -27,6 +27,7 @@ private:
 
     float _angle;
     QPoint _position;
+    bool voronoi = false;
 
 signals:
 
@@ -34,6 +35,9 @@ public slots:
     void onAddVertexButton();
     void onOptimizeButton();
     void onResetButton();
+    void onDelaunayButton();
+    void onShowVoronoi();
+    void onHideVoronoi();
 };
 
 #endif // GLDISPLAY_H
